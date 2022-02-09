@@ -1,8 +1,4 @@
-# Wordle+ - Wordle, but better
+# Harmony Wordle - Wordle, but fanficed
 npm install
 
 npm start
-
-ggez
-
-![Kappa](./src/kappa.png)
