@@ -18,7 +18,7 @@ export const TitleBarComponent: React.FC<TitleBarProps> = (props) => {
           </IconButton>
         </Tooltip>
       </div>
-      <div className="title">WORDLE+</div>
+      <div className="title">HARMONY</div>
       <div className="title_bar_button_container">
         <Tooltip title="Statistics">
           <IconButton onClick={props.showStatistics}>

@@ -4,7 +4,11 @@ import { Guess, GuessCharacter } from "../wordle/types";
 export const GuessesComponent: React.FC<{
   guesses: Guess[];
   onAnimationEnd: (ref: HTMLDivElement | null, i?: number) => void;
-}> = ({ guesses, onAnimationEnd }) => {
+  isAdminPage: boolean;
+}> = ({ guesses, onAnimationEnd , isAdminPage}) => {
+  if (isAdminPage) {
+    return null;
+  }
   return (
     <div className="guesses">
       {guesses.map((guess, i) => (

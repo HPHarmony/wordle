@@ -7,6 +7,9 @@ export const KeyboardComponent: React.FC<KeyboardProps> = (props) => {
     ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
     ["Z", "X", "C", "V", "B", "N", "M"],
   ];
+  if (props.isAdminPage()) {
+    return null;
+  }
   return (
     <div className="keyboard">
       {rows.map((r, i) => (

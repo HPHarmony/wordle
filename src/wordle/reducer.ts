@@ -115,8 +115,6 @@ export const wordleReducer = (state: WordleState, action: WordleAction): WordleS
         },
       };
     }
-    case "timeLimit.update":
-      return { ...state, currentState: { ...state.currentState, timeLimit: action.newTimeLimit } };
     default:
       throw new Error();
   }

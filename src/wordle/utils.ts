@@ -44,9 +44,6 @@ export function getInitialState(): WordleState {
   const icsLocalstorage = getInitialCurrentStateFromLocalstorage();
   const icsEmpty = getEmptyInitialCurrentState();
   const initialCurrentState = icsURLParams ?? icsLocalstorage ?? icsEmpty;
-  if (initialCurrentState.gameState === "in_progress") {
-    initialCurrentState.timeLimit = 0;
-  }
   const initialHistory: WordleHistoryEntry[] = window.localStorage.getItem("wordleHistory")
     ? JSON.parse(window.localStorage.getItem("wordleHistory")!, reviver)
     : [];
@@ -67,13 +64,13 @@ export function getInitialState(): WordleState {
 
 function getInitialCurrentStateFromURLParams(): GameSnapshot | undefined {
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get("word") && urlParams.get("numGuesses")) {
+  if (urlParams.get("word")) {
     const word = atob(urlParams.get("word")!);
-    const numGuesses = parseInt(urlParams.get("numGuesses")!);
+    const numGuesses = Math.max(6, word.length + 1); // Minimum 6 length for 4-length words
     return {
       numGuesses,
-      numCharacters: 5,
-      guesses: getInitialGuesses(numGuesses, 5),
+      numCharacters: word.length,
+      guesses: getInitialGuesses(numGuesses, word.length),
       characterStatusMap: getInitialCharacterStatusMap(),
       word,
       characterIndicesMap: getCharacterIndicesMapForWord(word),

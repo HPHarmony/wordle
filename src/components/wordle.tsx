@@ -15,10 +15,6 @@ export const Wordle: React.FC<{ wordsMap: Map<number, string[]>; allwordsMap: Ma
 }) => {
   const [state, dispatch] = useReducer(wordleReducer, getInitialState());
   const [numGuessesInput, setNumGuessesInput] = useState(state.currentState.numGuesses.toString());
-  const [timeLimitInput, setTimeLimitInput] = useState((state.currentState.timeLimit ?? 0).toString());
-  const [showTimeRemaining, setShowTimeRemaining] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState("");
-  const [timeRemainingInterval, setTimeRemainingInterval] = useState<NodeJS.Timer>();
 
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [statisticsDialogOpen, setStatisticsDialogOpen] = useState(false);
@@ -48,14 +44,6 @@ export const Wordle: React.FC<{ wordsMap: Map<number, string[]>; allwordsMap: Ma
   useEffect(() => {
     window.localStorage.setItem("wordleSettings", JSON.stringify(state.settings));
   }, [state.settings]);
-
-  useEffect(() => {
-    if ((state.currentState.gameState === "won" || state.currentState.gameState === "lost") && timeRemainingInterval) {
-      setShowTimeRemaining(false);
-      setTimeRemaining("");
-      clearInterval(timeRemainingInterval);
-    }
-  }, [state.currentState.gameState, timeRemainingInterval]);
 
   useEffect(() => {
     if (state.settings.darkTheme) {
@@ -244,7 +232,7 @@ export const Wordle: React.FC<{ wordsMap: Map<number, string[]>; allwordsMap: Ma
     dispatch({ type: "snackbar.show", message: "Copied results to clipboard", zIndex: 1400, duration: 2000 });
   };
   const getShareableResult = () => {
-    let result = "Wordle+ ";
+    let result = "Harmony Wordle ";
     result += wordsMap.get(state.currentState.numCharacters)!.indexOf(state.currentState.word);
     result += ": ";
     if (state.currentState.gameState === "won") {
@@ -293,65 +281,18 @@ export const Wordle: React.FC<{ wordsMap: Map<number, string[]>; allwordsMap: Ma
   const onCharactersChanged = (event: SelectChangeEvent<number>) => {
     dispatch({ type: "numCharacters.update", newNumCharacters: event.target.value as number });
   };
-  const onTimeLimitChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTimeLimitInput(event.target.value);
-    const valueAsNumber = Number(event.target.value);
-    if (Number.isInteger(valueAsNumber) && valueAsNumber >= 0) {
-      dispatch({ type: "timeLimit.update", newTimeLimit: valueAsNumber });
-    }
-  };
-  const isTimeLimitValid = () => {
-    const timeLimit = Number(timeLimitInput);
-    return timeLimitInput.trim() !== "" && Number.isInteger(timeLimit) && timeLimit >= 0;
-  };
   const shareLink = () => {
     const shareableLink = new URL(window.location.origin + window.location.pathname);
     shareableLink.searchParams.append("word", btoa(state.currentState.word));
-    shareableLink.searchParams.append("numGuesses", state.currentState.numGuesses.toString());
     navigator.clipboard.writeText(shareableLink.href);
     dispatch({ type: "snackbar.show", message: "Copied link to clipboard", zIndex: 1200, duration: 2000 });
   };
-  const start = () => {
-    const listOfWords = wordsMap.get(state.currentState.numCharacters)!;
-    const randomWord = listOfWords[Math.floor(Math.random() * listOfWords.length)];
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("debug") === "true") {
-      console.log(randomWord);
-    }
-    dispatch({ type: "gameState.update", newGameState: "in_progress", newWord: randomWord });
-    if (state.currentState.timeLimit && state.currentState.timeLimit > 0) {
-      setTimeRemaining(`Time Remaining: ${state.currentState.timeLimit!}s`);
-      setShowTimeRemaining(true);
-      let i = 0;
-      setTimeRemainingInterval(
-        setInterval(() => {
-          i++;
-          if (i < state.currentState.timeLimit!) {
-            setTimeRemaining(`Time Remaining: ${state.currentState.timeLimit! - i}s`);
-          } else if (i === state.currentState.timeLimit!) {
-            setTimeRemaining("Time's Up!");
-            dispatch({ type: "gameState.update", newGameState: "lost" });
-          } else if (i === state.currentState.timeLimit! + 1) {
-            setShowTimeRemaining(false);
-            setTimeRemaining("");
-            clearInterval(timeRemainingInterval!);
-          }
-        }, 1000)
-      );
-    }
-  };
   const isValid = () => {
-    return isGuessesValid() && isTimeLimitValid();
+    return isGuessesValid();
   };
-  const reset = () => {
-    if (state.animationType === "idle") {
-      if (timeRemainingInterval) {
-        setShowTimeRemaining(false);
-        setTimeRemaining("");
-        clearInterval(timeRemainingInterval);
-      }
-      dispatch({ type: "gameState.update", newGameState: "new" });
-    }
+  const isAdminPage = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("word") == null
   };
 
   const onAnimationEnd = (ref: HTMLDivElement | null, i?: number) => {
@@ -439,15 +380,11 @@ export const Wordle: React.FC<{ wordsMap: Map<number, string[]>; allwordsMap: Ma
           isGuessesValid={isGuessesValid}
           numCharacters={state.currentState.numCharacters}
           onCharactersChanged={onCharactersChanged}
-          timeLimit={timeLimitInput}
-          onTimeLimitChanged={onTimeLimitChanged}
-          isTimeLimitValid={isTimeLimitValid}
           shareLink={shareLink}
-          start={start}
           isValid={isValid}
-          reset={reset}
+          isAdminPage={isAdminPage}
         />
-        <GuessesComponent guesses={state.currentState.guesses} onAnimationEnd={onAnimationEnd} />
+        <GuessesComponent guesses={state.currentState.guesses} onAnimationEnd={onAnimationEnd} isAdminPage={isAdminPage()} />
       </div>
       <KeyboardComponent
         animationType={state.animationType}
@@ -470,15 +407,8 @@ export const Wordle: React.FC<{ wordsMap: Map<number, string[]>; allwordsMap: Ma
             dispatch({ type: "backspace.pressed" });
           }
         }}
+        isAdminPage={isAdminPage}
       />
-      <Snackbar
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        transitionDuration={{ enter: 0 }}
-        open={showTimeRemaining}
-        sx={{ zIndex: 1201 }}
-      >
-        <div className="notification_message notification_message_top">{timeRemaining}</div>
-      </Snackbar>
       <Snackbar
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
         transitionDuration={{ enter: 0 }}

@@ -14,7 +14,6 @@ export type GameSnapshot = {
   currentGuessIndex: number;
   currentCharacterIndex: number;
   showCorrectWord: boolean;
-  timeLimit?: number;
 };
 
 export type Guess = {
@@ -75,7 +74,6 @@ export type WordleAction =
   | { type: "darkTheme.toggled" }
   | { type: "animationType.set"; animationType: AnimationType }
   | { type: "init.updateCharacters"; characterIndex: number }
-  | { type: "timeLimit.update"; newTimeLimit: number };
 
 export type TitleBarProps = {
   showHistory: () => void;
@@ -131,13 +129,9 @@ export type ToolbarProps = {
   isGuessesValid: () => boolean;
   numCharacters: number;
   onCharactersChanged: (event: SelectChangeEvent<number>) => void;
-  timeLimit: string;
-  onTimeLimitChanged: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  isTimeLimitValid: () => boolean;
   shareLink: () => void;
-  start: () => void;
   isValid: () => boolean;
-  reset: () => void;
+  isAdminPage: () => boolean;
 };
 
 export type KeyboardProps = {
@@ -146,6 +140,7 @@ export type KeyboardProps = {
   onClickCharacter: (character: string) => void;
   onClickEnter: () => void;
   onClickBackspace: () => void;
+  isAdminPage: () => boolean;
 };
 
 export type KeyboardCharacterProps = {

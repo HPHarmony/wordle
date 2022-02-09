@@ -1,6 +1,4 @@
 import LinkIcon from "@mui/icons-material/Link";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import { Button, InputLabel, MenuItem, Select, TextField } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import { ToWords } from "to-words";
@@ -11,10 +9,26 @@ import { ToolbarProps } from "../wordle/types";
 const toWords = new ToWords();
 
 export const ToolbarComponent: React.FC<ToolbarProps> = (props) => {
-  return (
-    <ThemeProvider theme={props.theme}>
-      <div className="toolbar">
-        <div className="toolbar_left">
+  if (props.isAdminPage()) {
+    return (
+      <ThemeProvider theme={props.theme}>
+        <div className="toolbar">
+          <div className="word_input">
+            <InputLabel sx={{ color: "var(--color-tone-1)" }}>Enter a Word (4-7 characters):</InputLabel>
+            <TextField
+              size="medium"
+              value={props.numGuesses}
+              onChange={props.onGuessesChanged}
+              sx={{ marginLeft: "8px", width: 200 }}
+            />
+          </div>
+        </div>
+      </ThemeProvider>
+    );
+  } else {
+    return (
+      <ThemeProvider theme={props.theme}>
+        <div className="toolbar">
           {props.gameState === "new" && (
             <div>
               <div className="num_guesses_setting">
@@ -42,19 +56,6 @@ export const ToolbarComponent: React.FC<ToolbarProps> = (props) => {
                   ))}
                 </Select>
               </div>
-              <div className="time_limit_setting_container">
-                <div className="time_limit_setting">
-                  <InputLabel sx={{ color: "var(--color-tone-1)" }}>Time Limit:</InputLabel>
-                  <TextField
-                    size="small"
-                    value={props.timeLimit}
-                    onChange={props.onTimeLimitChanged}
-                    sx={{ width: 75 }}
-                    error={!props.isTimeLimitValid()}
-                  />
-                </div>
-                <div className="time_limit_setting_description">in seconds. 0=no time limit</div>
-              </div>
             </div>
           )}
           {(props.gameState === "won" || props.gameState === "lost") && (
@@ -64,27 +65,7 @@ export const ToolbarComponent: React.FC<ToolbarProps> = (props) => {
             </Button>
           )}
         </div>
-        <div className="spacer"></div>
-        <div className="toolbar_right">
-          {props.gameState === "new" ? (
-            <Button
-              variant="contained"
-              size="medium"
-              onClick={props.start}
-              sx={buttonSxProps}
-              disabled={!props.isValid()}
-            >
-              Start
-              <PlayArrowIcon sx={{ marginLeft: "4px" }} />
-            </Button>
-          ) : (
-            <Button variant="contained" size="medium" onClick={props.reset} sx={buttonSxProps}>
-              Reset
-              <RestartAltIcon sx={{ marginLeft: "4px" }} />
-            </Button>
-          )}
-        </div>
-      </div>
-    </ThemeProvider>
-  );
+      </ThemeProvider>
+    );
+  }
 };
